@@ -74,4 +74,10 @@ router.get('/showGroups', async (req, res, next) => {
   res.render('groups', { title: 'Użytkownicy', users });
 });
 
+router.get('/showPoints', async (req, res, next) => {
+  const points = await Point.findAll();
+
+  res.render('points', { title: 'Punkty', points });
+});
+
 module.exports = router;
