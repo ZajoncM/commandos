@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  h1= title
+  div 
+    table 
+      thead 
+        tr 
+          th ID
+          th Grupa 
+      tbody
+      each user in users
+        tr
+          td=user.id
+          td=user.group
