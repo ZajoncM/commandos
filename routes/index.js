@@ -41,19 +41,22 @@ router.get('/getPoint/:id', async (req, res, next) => {
       throw 'Nie ma takiego użytkownika';
     }
 
-
-    const points = await Point.findAll();
-    const users = await User.findAll();
-
-    const userGroup = user.group;
-
-    const groupUsers = users.filter(u => u.group === userGroup);
-    const groupIds = groupUsers.map(u => u.id)
-
     
-    
-    const groupPoints = points.filter(p => groupIds.includes(p.userId))
-    const pointIds = groupPoints.map(p => p.number);
+    const users = await User.findAll({
+      where: {
+        group: user.group
+      }
+    });
+
+    const groupIds = users.map(u => u.id)
+
+    const points = await Point.findAll({
+      where: {
+        userId: groupIds
+      }
+    });
+
+    const pointIds = points.map(p => p.number);
 
     if(pointIds.includes(parseInt(id))) {
       throw 'Twoja grupa zdobyła już ten punkt';
@@ -68,16 +71,25 @@ router.get('/getPoint/:id', async (req, res, next) => {
   }
 });
 
-router.get('/showGroups', async (req, res, next) => {
+router.get('/stats', async (req, res, next) => {
   const users = await User.findAll();
-
-  res.render('groups', { title: 'Użytkownicy', users });
-});
-
-router.get('/showPoints', async (req, res, next) => {
   const points = await Point.findAll();
 
-  res.render('points', { title: 'Punkty', points });
+  users.sort((x, y) => x.group - y.group);
+
+  res.render('stats', { title: 'Statystyki', users, points });
+});
+
+router.get('/resetGame', async (req, res, next) => {
+  await User.destroy({
+    truncate: true
+  });
+
+  await Point.destroy({
+    truncate: true
+  });
+
+  res.render('error', { message: 'Zresetowano system'});
 });
 
 module.exports = router;

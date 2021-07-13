@@ -1,0 +1,27 @@
+extends layout
+
+block content
+  h1= title
+  div 
+    h2 Grupy
+    table 
+      thead 
+        tr 
+          th Użytkownik
+          th Grupa 
+      tbody
+      each user in users
+        tr
+          td=user.id
+          td=user.group
+    h2 Punkty
+    table 
+      thead 
+        tr 
+          th ID
+          th Użytkownik 
+      tbody
+      each point in points
+        tr
+          td=point.number
+          td=point.userId
