@@ -52,6 +52,10 @@ router.get('/getPoint/:base', async (req, res, next) => {
       throw 'Brak sesji';
     }
 
+    if(isNaN(id)) {
+      throw 'Niepoprawny punkt';
+    }
+
     const user = await User.findOne({
       where:{
         id: session
