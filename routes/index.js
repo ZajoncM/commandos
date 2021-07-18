@@ -13,17 +13,38 @@ router.get('/', function(req, res, next) {
 router.get('/setGroup/:group', async (req, res, next) => {
   const {group} = req.params;
 
-  if(!req.cookies.id) {
-    const id = nanoid();
-    await User.create({id, group: parseInt(group)}).then(() => console.log('inserted'))
-    res.cookie('id', id); 
-  }
+  try {
 
-  res.render('newGroup', { title: 'Cześć', message: `jesteś w grupie ${group}` });
+  if(req.cookies.id) {
+    const user = await User.findOne({
+      where:{
+        id: req.cookies.id
+      }
+    });
+
+    if (user) {
+      throw `Jesteś już w grupie ${user.group}`;
+    }
+
+    await User.create({id: req.cookies.id, group: parseInt(group)})
+    res.cookie('id', req.cookies.id); 
+    res.render('newGroup', { title: 'Cześć', message: `jesteś w grupie ${group}` });
+  } else {
+
+    const id = nanoid();
+    await User.create({id, group: parseInt(group)})
+    res.cookie('id', id); 
+    res.render('newGroup', { title: 'Cześć', message: `jesteś w grupie ${group}` });
+  }
+    
+  } catch (error) {
+    res.render('error', { message: error});
+  }
 });
 
-router.get('/getPoint/:id', async (req, res, next) => {
-  const {id} = req.params;
+router.get('/getPoint/:base', async (req, res, next) => {
+  const {base} = req.params;
+  const id = parseInt(Buffer.from(base, 'base64').toString('ascii'))
   const session = req.cookies.id;
 
   try {
