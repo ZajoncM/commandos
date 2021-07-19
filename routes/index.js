@@ -3,7 +3,8 @@ var router = express.Router();
 const User = require('../models/User');
 const Point = require('../models/Point');
 var { nanoid } = require("nanoid");
-
+const sequelize = require('../database');
+const { QueryTypes } = require('sequelize');
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
@@ -28,13 +29,13 @@ router.get('/setGroup/:group', async (req, res, next) => {
 
     await User.create({id: req.cookies.id, group: parseInt(group)})
     res.cookie('id', req.cookies.id); 
-    res.render('newGroup', { title: 'Cześć', message: `jesteś w grupie ${group}` });
+    res.render('newGroup', { title: `Cześć! Jesteś w grupie ${group}`, message: `` });
   } else {
 
     const id = nanoid();
     await User.create({id, group: parseInt(group)})
     res.cookie('id', id); 
-    res.render('newGroup', { title: 'Cześć', message: `jesteś w grupie ${group}` });
+    res.render('newGroup', { title: `Cześć! Jesteś w grupie ${group}`, message: `` });
   }
     
   } catch (error) {
@@ -48,6 +49,23 @@ router.get('/getPoint/:base', async (req, res, next) => {
   const session = req.cookies.id;
 
   try {
+
+   
+    const groupPoints = await sequelize.query(`
+    SELECT 
+      users.[group], 
+      COUNT(points.number) AS points 
+    FROM users 
+    JOIN points ON users.id = points.userId
+    GROUP BY users.[group]
+    `,{type: QueryTypes.SELECT});
+    
+    groupPoints.forEach(({group,points}) => {
+      if (points >= 10) {
+        throw `Koniec gry!! Drużyna ${group} zdobyła wszystkie punkty 🏆`;
+      }
+    })
+    
     if(!session) {
       throw 'Brak sesji';
     }
